@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function ClassSelection() {
+export default function Page() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🎭 Choose Your Class 🎭</Text>
-      <Text style={styles.subtitle}>Class selection coming soon!</Text>
+      <Text style={styles.title}>🏰 QUESTAGRAM 🏰</Text>
+      <Text style={styles.subtitle}>Welcome, Adventurer!</Text>
+      <Text style={styles.instruction}>Your epic journey begins here</Text>
     </View>
   );
 }
@@ -19,15 +20,22 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 20,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 20,
     color: '#ccc',
+    marginBottom: 10,
     textAlign: 'center',
+  },
+  instruction: {
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
