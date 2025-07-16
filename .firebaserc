@@ -1,0 +1,17 @@
+{
+  "projects": {
+    "default": "questagram"
+  },
+  "targets": {
+    "questagram": {
+      "hosting": {
+        "site": "your-firebase-project-id",
+        "ignore": [
+          "firebase.json",
+          "**/.*",
+          "**/node_modules/**"
+        ]
+      }
+    }
+  }
+}

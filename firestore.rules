@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read and write access to authenticated users
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Specific rules for user profiles
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId; // Users can read their own profiles
+      allow write: if request.auth.uid == userId; // Users can write to their own profiles
+    }
+
+    // Rules for quests and classes
+    match /quests/{questId} {
+      allow read: if request.auth != null; // All authenticated users can read quests
+      allow write: if request.auth != null; // All authenticated users can write quests
+    }
+
+    match /classes/{classId} {
+      allow read: if request.auth != null; // All authenticated users can read class information
+      allow write: if request.auth != null; // All authenticated users can write class information
+    }
+  }
+}
