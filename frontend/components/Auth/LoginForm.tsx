@@ -1,7 +1,9 @@
 // frontend/components/Auth/LoginForm.tsx
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, TextInput, Text, StyleSheet, Alert, ActivityIndicator, TouchableOpacity, Dimensions } from 'react-native';
 import { apiService } from '../../services/api';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 interface LoginFormProps {
   onLoginSuccess?: (userClass: string) => void;
@@ -49,70 +51,146 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onNavigateToSignu
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>🏰 Welcome Back!</Text>
+        <Text style={styles.subtitle}>Enter the realm of adventure</Text>
+      </View>
+
       {error ? <Text style={styles.error}>{error}</Text> : null}
       
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-        editable={!loading}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        editable={!loading}
-      />
-      
-      {loading ? (
-        <ActivityIndicator size="large" color="#0066cc" style={styles.loader} />
-      ) : (
-        <Button title="Login" onPress={handleLogin} />
-      )}
-      
-      <Button 
-        title="Don't have an account? Sign up" 
-        onPress={onNavigateToSignup}
-        color="#666"
-      />
+      <View style={styles.form}>
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          placeholderTextColor="#999"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+          autoCorrect={false}
+          editable={!loading}
+          returnKeyType="next"
+        />
+        
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#999"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          editable={!loading}
+          returnKeyType="done"
+          onSubmitEditing={handleLogin}
+        />
+        
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#0066cc" />
+            <Text style={styles.loadingText}>Entering the realm...</Text>
+          </View>
+        ) : (
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+            <Text style={styles.loginButtonText}>🗝️ Enter Realm</Text>
+          </TouchableOpacity>
+        )}
+        
+        <TouchableOpacity 
+          style={styles.signupButton} 
+          onPress={onNavigateToSignup}
+          disabled={loading}
+        >
+          <Text style={styles.signupButtonText}>
+            New adventurer? Create your character
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
     width: '100%',
     maxWidth: 400,
+    alignSelf: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
   title: {
-    fontSize: 24,
-    marginBottom: 20,
+    fontSize: 28,
+    fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
+    marginBottom: 8,
   },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-    borderRadius: 5,
-  },
-  error: {
-    color: 'red',
-    marginBottom: 10,
+  subtitle: {
+    fontSize: 16,
+    color: '#ccc',
     textAlign: 'center',
   },
-  loader: {
-    marginVertical: 20,
+  form: {
+    width: '100%',
+  },
+  input: {
+    height: 56,
+    borderColor: '#444',
+    borderWidth: 2,
+    marginBottom: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#2a2a2a',
+    borderRadius: 16,
+    color: '#fff',
+    fontSize: 16,
+  },
+  error: {
+    color: '#ff4444',
+    marginBottom: 16,
+    textAlign: 'center',
+    fontSize: 14,
+    backgroundColor: '#2a1a1a',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ff4444',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  loadingText: {
+    color: '#0066cc',
+    marginTop: 12,
+    fontSize: 14,
+  },
+  loginButton: {
+    backgroundColor: '#0066cc',
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+    minHeight: 56,
+    justifyContent: 'center',
+  },
+  loginButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  signupButton: {
+    backgroundColor: 'transparent',
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#444',
+    minHeight: 56,
+    justifyContent: 'center',
+  },
+  signupButtonText: {
+    color: '#ccc',
+    fontSize: 16,
   },
 });
 

@@ -9,6 +9,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { QuestProvider } from '../context/QuestContext';
 import { PostProvider } from '../context/PostContext';
+import { LeaderboardProvider } from '../context/LeaderboardContext';
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 
@@ -44,58 +45,68 @@ export default function RootLayout() {
     <AuthProvider>
       <QuestProvider>
         <PostProvider>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <AuthRedirector />
-            <Stack
-              screenOptions={{
-                headerStyle: {
-                  backgroundColor: '#1a1a1a',
-                },
-                headerTintColor: '#fff',
-                headerTitleStyle: {
-                  fontWeight: 'bold',
-                },
-              }}
-            >
-              <Stack.Screen 
-                name="index" 
-                options={{ 
-                  title: 'Welcome to Questagram',
-                  headerShown: false 
-                }} 
-              />
-              <Stack.Screen 
-                name="login" 
-                options={{ title: 'Enter the Realm' }} 
-              />
-              <Stack.Screen 
-                name="signup" 
-                options={{ title: 'Create Your Character' }} 
-              />
-              <Stack.Screen 
-                name="class-selection" 
-                options={{ title: 'Choose Your Path' }} 
-              />
-              <Stack.Screen 
-                name="main-app" 
-                options={{ headerShown: false }} 
-              />
-              <Stack.Screen 
-                name="quests" 
-                options={{ title: 'Quest Board' }} 
-              />
-              <Stack.Screen 
-                name="feed" 
-                options={{ title: 'Realm Feed' }} 
-              />
-              <Stack.Screen 
-                name="create-post" 
-                options={{ title: 'Create Post' }} 
-              />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar style="auto" />
-          </ThemeProvider>
+          <LeaderboardProvider>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <AuthRedirector />
+              <Stack
+                screenOptions={{
+                  headerStyle: {
+                    backgroundColor: '#1a1a1a',
+                  },
+                  headerTintColor: '#fff',
+                  headerTitleStyle: {
+                    fontWeight: 'bold',
+                  },
+                }}
+              >
+                <Stack.Screen 
+                  name="index" 
+                  options={{ 
+                    title: 'Welcome to Questagram',
+                    headerShown: false 
+                  }} 
+                />
+                <Stack.Screen 
+                  name="login" 
+                  options={{ title: 'Enter the Realm' }} 
+                />
+                <Stack.Screen 
+                  name="signup" 
+                  options={{ title: 'Create Your Character' }} 
+                />
+                <Stack.Screen 
+                  name="class-selection" 
+                  options={{ title: 'Choose Your Path' }} 
+                />
+                <Stack.Screen 
+                  name="main-app" 
+                  options={{ headerShown: false }} 
+                />
+                <Stack.Screen 
+                  name="quests" 
+                  options={{ title: 'Quest Board' }} 
+                />
+                <Stack.Screen 
+                  name="feed" 
+                  options={{ title: 'Realm Feed' }} 
+                />
+                <Stack.Screen 
+                  name="create-post" 
+                  options={{ title: 'Create Post' }} 
+                />
+                <Stack.Screen 
+                  name="leaderboard" 
+                  options={{ title: 'Leaderboard' }} 
+                />
+                <Stack.Screen 
+                  name="clear-storage" 
+                  options={{ title: 'Debug Tools' }} 
+                />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+              <StatusBar style="auto" />
+            </ThemeProvider>
+          </LeaderboardProvider>
         </PostProvider>
       </QuestProvider>
     </AuthProvider>

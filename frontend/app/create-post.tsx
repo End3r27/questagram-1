@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { usePosts } from '../context/PostContext';
 import { useAuth } from '../context/AuthContext';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function CreatePost() {
   const [content, setContent] = useState('');
@@ -89,50 +91,68 @@ export default function CreatePost() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <View style={styles.header}>
-        <Text style={styles.title}>📸 Create Your Post</Text>
-        <Text style={styles.subtitle}>Share your adventure with the realm!</Text>
-      </View>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>📸 Create Your Post</Text>
+          <Text style={styles.subtitle}>Share your adventure with the realm!</Text>
+        </View>
 
-      {/* Content Input */}
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>What's on your mind, adventurer?</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Share your thoughts, achievements, or discoveries..."
-          placeholderTextColor="#999"
-          value={content}
-          onChangeText={setContent}
-          multiline
-          numberOfLines={6}
-          textAlignVertical="top"
-          editable={!loading}
-        />
-        <Text style={styles.characterCount}>{content.length}/500</Text>
-      </View>
+        {/* Content Input */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>What's on your mind, adventurer?</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Share your thoughts, achievements, or discoveries..."
+            placeholderTextColor="#999"
+            value={content}
+            onChangeText={setContent}
+            multiline
+            numberOfLines={6}
+            textAlignVertical="top"
+            editable={!loading}
+            maxLength={500}
+          />
+          <View style={styles.characterCountContainer}>
+            <Text style={[
+              styles.characterCount,
+              content.length > 450 && styles.characterCountWarning,
+              content.length >= 500 && styles.characterCountError
+            ]}>
+              {content.length}/500
+            </Text>
+          </View>
+        </View>
 
-      {/* Zone Selection */}
-      <View style={styles.zoneContainer}>
-        <Text style={styles.label}>Choose Your Zone</Text>
-        <Text style={styles.zoneSubtitle}>Select where your post belongs in the realm</Text>
-        
-        {availableZones.map((zone) => (
-          <TouchableOpacity
-            key={zone.id}
-            style={[
-              styles.zoneCard,
-              selectedZone === zone.id && [
-                styles.selectedZone,
-                { borderColor: getZoneColor(zone.id) }
-              ]
-            ]}
-            onPress={() => setSelectedZone(zone.id)}
-            disabled={loading}
-          >
-            <View style={styles.zoneHeader}>
-              <Text style={styles.zoneEmoji}>{zone.emoji}</Text>
-              <View style={styles.zoneInfo}>
+        {/* Zone Selection */}
+        <View style={styles.zoneContainer}>
+          <Text style={styles.label}>Choose Your Zone</Text>
+          <Text style={styles.zoneSubtitle}>Select where your post belongs in the realm</Text>
+          
+          <View style={styles.zoneGrid}>
+            {availableZones.map((zone) => (
+              <TouchableOpacity
+                key={zone.id}
+                style={[
+                  styles.zoneCard,
+                  selectedZone === zone.id && [
+                    styles.selectedZone,
+                    { borderColor: getZoneColor(zone.id) }
+                  ]
+                ]}
+                onPress={() => setSelectedZone(zone.id)}
+                disabled={loading}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.zoneEmoji}>{zone.emoji}</Text>
                 <Text style={[
                   styles.zoneName,
                   selectedZone === zone.id && { color: getZoneColor(zone.id) }
@@ -140,52 +160,44 @@ export default function CreatePost() {
                   {zone.name}
                 </Text>
                 <Text style={styles.zoneDescription}>{zone.description}</Text>
-              </View>
-              {zone.classBonus && user?.class && zone.classBonus.includes(user.class) && (
-                <Text style={styles.bonusIndicator}>⭐</Text>
-              )}
-            </View>
-            
-            {zone.classBonus && user?.class && zone.classBonus.includes(user.class) && (
-              <Text style={styles.bonusText}>✨ Class Bonus: +50% XP!</Text>
-            )}
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* XP Preview */}
-      {selectedZone && (
-        <View style={styles.xpPreview}>
-          <Text style={styles.xpPreviewTitle}>📊 Expected Rewards</Text>
-          <View style={styles.xpPreviewContent}>
-            <Text style={styles.xpPreviewText}>
-              Base XP: 25 {(() => {
-                const zone = availableZones.find(z => z.id === selectedZone);
-                if (zone?.classBonus && user?.class && zone.classBonus.includes(user.class)) {
-                  return '→ 37 XP (Class Bonus!)';
-                }
-                return 'XP';
-              })()}
-            </Text>
+                
+                {zone.classBonus && user?.class && zone.classBonus.includes(user.class) && (
+                  <View style={styles.bonusIndicator}>
+                    <Text style={styles.bonusText}>⭐ Class Bonus</Text>
+                  </View>
+                )}
+                
+                {selectedZone === zone.id && (
+                  <View style={styles.selectedIndicator}>
+                    <Text style={styles.selectedText}>✓</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
-      )}
 
-      {/* Action Buttons */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[
-            styles.createButton,
-            (!content.trim() || !selectedZone || loading) && styles.disabledButton
-          ]}
-          onPress={handleCreatePost}
-          disabled={!content.trim() || !selectedZone || loading}
-        >
-          <Text style={styles.createButtonText}>
-            {loading ? '📤 Posting...' : '🚀 Share Adventure'}
-          </Text>
-        </TouchableOpacity>
+        {/* XP Preview */}
+        {selectedZone && (
+          <View style={styles.xpPreview}>
+            <Text style={styles.xpPreviewTitle}>📊 Expected Rewards</Text>
+            <View style={styles.xpPreviewContent}>
+              <Text style={styles.xpPreviewText}>
+                Base XP: 25 {(() => {
+                  const zone = availableZones.find(z => z.id === selectedZone);
+                  if (zone?.classBonus && user?.class && zone.classBonus.includes(user.class)) {
+                    return '→ 37 XP (Class Bonus!)';
+                  }
+                  return 'XP';
+                })()}
+              </Text>
+            </View>
+          </View>
+        )}
+      </ScrollView>
 
+      {/* Bottom Action Bar */}
+      <View style={styles.bottomContainer}>
         <TouchableOpacity
           style={styles.cancelButton}
           onPress={() => router.back()}
@@ -193,8 +205,22 @@ export default function CreatePost() {
         >
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.createButton,
+            (!content.trim() || !selectedZone || loading) && styles.disabledButton
+          ]}
+          onPress={handleCreatePost}
+          disabled={!content.trim() || !selectedZone || loading}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.createButtonText}>
+            {loading ? '📤 Posting...' : '🚀 Share'}
+          </Text>
+        </TouchableOpacity>
       </View>
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -203,19 +229,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1a1a1a',
   },
-  contentContainer: {
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     padding: 20,
     paddingTop: 60,
+    paddingBottom: 100, // Space for bottom bar
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 32,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
@@ -223,86 +253,120 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inputContainer: {
-    marginBottom: 30,
+    marginBottom: 32,
   },
   label: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   textInput: {
     backgroundColor: '#2a2a2a',
-    borderRadius: 15,
-    padding: 15,
+    borderRadius: 16,
+    padding: 16,
     color: '#fff',
     fontSize: 16,
     minHeight: 120,
     borderWidth: 2,
     borderColor: '#444',
+    textAlignVertical: 'top',
+  },
+  characterCountContainer: {
+    alignItems: 'flex-end',
+    marginTop: 8,
   },
   characterCount: {
-    textAlign: 'right',
     color: '#999',
     fontSize: 12,
-    marginTop: 5,
+  },
+  characterCountWarning: {
+    color: '#ffaa00',
+  },
+  characterCountError: {
+    color: '#ff4444',
   },
   zoneContainer: {
-    marginBottom: 30,
+    marginBottom: 24,
   },
   zoneSubtitle: {
     fontSize: 14,
     color: '#ccc',
-    marginBottom: 15,
+    marginBottom: 16,
+  },
+  zoneGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   zoneCard: {
     backgroundColor: '#2a2a2a',
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 10,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
     borderWidth: 2,
     borderColor: '#444',
+    width: (screenWidth - 56) / 2,
+    minHeight: 120,
+    position: 'relative',
+    alignItems: 'center',
   },
   selectedZone: {
     backgroundColor: '#333',
     borderWidth: 3,
   },
-  zoneHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   zoneEmoji: {
     fontSize: 24,
-    marginRight: 15,
-  },
-  zoneInfo: {
-    flex: 1,
+    marginBottom: 8,
   },
   zoneName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 2,
+    marginBottom: 4,
+    textAlign: 'center',
   },
   zoneDescription: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#ccc',
+    textAlign: 'center',
+    lineHeight: 14,
   },
   bonusIndicator: {
-    fontSize: 20,
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#ffff44',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
   },
   bonusText: {
+    fontSize: 8,
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#00cc66',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectedText: {
+    color: '#fff',
     fontSize: 12,
-    color: '#ffff44',
-    fontStyle: 'italic',
-    marginTop: 8,
-    textAlign: 'center',
+    fontWeight: 'bold',
   },
   xpPreview: {
     backgroundColor: '#2a2a2a',
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 30,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
     borderWidth: 2,
     borderColor: '#0066cc',
   },
@@ -310,7 +374,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 10,
+    marginBottom: 8,
     textAlign: 'center',
   },
   xpPreviewContent: {
@@ -321,34 +385,49 @@ const styles = StyleSheet.create({
     color: '#0066cc',
     fontWeight: 'bold',
   },
-  buttonContainer: {
-    marginBottom: 20,
+  bottomContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    padding: 20,
+    backgroundColor: '#1a1a1a',
+    borderTopWidth: 1,
+    borderTopColor: '#333',
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#666',
+    marginRight: 12,
+    minHeight: 56,
+    justifyContent: 'center',
+  },
+  cancelButtonText: {
+    color: '#ccc',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   createButton: {
+    flex: 2,
     backgroundColor: '#00cc66',
-    padding: 18,
-    borderRadius: 15,
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: 'center',
-    marginBottom: 15,
+    minHeight: 56,
+    justifyContent: 'center',
   },
   disabledButton: {
     backgroundColor: '#444',
   },
   createButtonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  cancelButton: {
-    backgroundColor: 'transparent',
-    padding: 15,
-    borderRadius: 15,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#666',
-  },
-  cancelButtonText: {
-    color: '#ccc',
     fontSize: 16,
+    fontWeight: 'bold',
   },
 });

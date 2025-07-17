@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Dimensions } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 interface ClassInfo {
   id: string;
@@ -120,71 +122,87 @@ export default function ClassSelection() {
   const selectedClassInfo = selectedClass ? classes.find(c => c.id === selectedClass) : null;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <View style={styles.header}>
-        <Text style={styles.title}>🎭 Choose Your Path 🎭</Text>
-        <Text style={styles.subtitle}>
-          Your class determines your journey through Questagram
-        </Text>
-      </View>
-
-      <View style={styles.classGrid}>
-        {classes.map((classInfo) => (
-          <TouchableOpacity
-            key={classInfo.id}
-            style={[
-              styles.classCard,
-              selectedClass === classInfo.id && [
-                styles.selectedClassCard,
-                { borderColor: classInfo.color }
-              ]
-            ]}
-            onPress={() => handleClassSelect(classInfo.id)}
-          >
-            <Text style={styles.classEmoji}>{classInfo.emoji}</Text>
-            <Text style={[
-              styles.className,
-              selectedClass === classInfo.id && { color: classInfo.color }
-            ]}>
-              {classInfo.name}
-            </Text>
-            <Text style={styles.classFocus}>{classInfo.focus}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {selectedClassInfo && (
-        <View style={[styles.detailCard, { borderColor: selectedClassInfo.color }]}>
-          <Text style={[styles.detailTitle, { color: selectedClassInfo.color }]}>
-            {selectedClassInfo.emoji} {selectedClassInfo.name}
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>🎭 Choose Your Path</Text>
+          <Text style={styles.subtitle}>
+            Your class determines your journey through Questagram
           </Text>
-          <Text style={styles.detailDescription}>
-            {selectedClassInfo.description}
-          </Text>
-          
-          <Text style={styles.bonusesTitle}>Class Bonuses:</Text>
-          {selectedClassInfo.bonuses.map((bonus, index) => (
-            <Text key={index} style={styles.bonusItem}>
-              • {bonus}
-            </Text>
+        </View>
+
+        <View style={styles.classGrid}>
+          {classes.map((classInfo) => (
+            <TouchableOpacity
+              key={classInfo.id}
+              style={[
+                styles.classCard,
+                selectedClass === classInfo.id && [
+                  styles.selectedClassCard,
+                  { borderColor: classInfo.color }
+                ]
+              ]}
+              onPress={() => handleClassSelect(classInfo.id)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.classEmoji}>{classInfo.emoji}</Text>
+              <Text style={[
+                styles.className,
+                selectedClass === classInfo.id && { color: classInfo.color }
+              ]}>
+                {classInfo.name}
+              </Text>
+              <Text style={styles.classFocus}>{classInfo.focus}</Text>
+              {selectedClass === classInfo.id && (
+                <View style={styles.selectedIndicator}>
+                  <Text style={styles.selectedText}>✓ Selected</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           ))}
         </View>
-      )}
 
-      <TouchableOpacity
-        style={[
-          styles.confirmButton,
-          selectedClass && { backgroundColor: selectedClassInfo?.color || '#0066cc' },
-          !selectedClass && styles.disabledButton
-        ]}
-        onPress={handleConfirmSelection}
-        disabled={!selectedClass}
-      >
-        <Text style={styles.confirmButtonText}>
-          {selectedClass ? `Begin as ${selectedClassInfo?.name}` : 'Select a Class'}
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+        {selectedClassInfo && (
+          <View style={[styles.detailCard, { borderColor: selectedClassInfo.color }]}>
+            <Text style={[styles.detailTitle, { color: selectedClassInfo.color }]}>
+              {selectedClassInfo.emoji} {selectedClassInfo.name}
+            </Text>
+            <Text style={styles.detailDescription}>
+              {selectedClassInfo.description}
+            </Text>
+            
+            <Text style={styles.bonusesTitle}>Class Bonuses:</Text>
+            {selectedClassInfo.bonuses.map((bonus, index) => (
+              <View key={index} style={styles.bonusItem}>
+                <Text style={styles.bonusBullet}>•</Text>
+                <Text style={styles.bonusText}>{bonus}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity
+          style={[
+            styles.confirmButton,
+            selectedClass && { backgroundColor: selectedClassInfo?.color || '#0066cc' },
+            !selectedClass && styles.disabledButton
+          ]}
+          onPress={handleConfirmSelection}
+          disabled={!selectedClass}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.confirmButtonText}>
+            {selectedClass ? `🚀 Begin as ${selectedClassInfo?.name}` : 'Select a Class First'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
@@ -193,19 +211,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1a1a1a',
   },
-  contentContainer: {
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     padding: 20,
     paddingTop: 60,
+    paddingBottom: 20,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 32,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 10,
+    marginBottom: 12,
     textAlign: 'center',
   },
   subtitle: {
@@ -213,80 +235,121 @@ const styles = StyleSheet.create({
     color: '#ccc',
     textAlign: 'center',
     paddingHorizontal: 20,
+    lineHeight: 22,
   },
   classGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   classCard: {
-    width: '48%',
+    width: (screenWidth - 56) / 2,
     backgroundColor: '#2a2a2a',
-    borderRadius: 15,
+    borderRadius: 20,
     padding: 20,
-    marginBottom: 15,
+    marginBottom: 16,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#444',
+    minHeight: 140,
+    justifyContent: 'center',
+    position: 'relative',
   },
   selectedClassCard: {
     backgroundColor: '#333',
     borderWidth: 3,
+    transform: [{ scale: 1.02 }],
   },
   classEmoji: {
     fontSize: 40,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   className: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 5,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   classFocus: {
     fontSize: 12,
     color: '#ccc',
     textAlign: 'center',
+    lineHeight: 16,
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#00cc66',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  selectedText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   detailCard: {
     backgroundColor: '#2a2a2a',
-    borderRadius: 15,
-    padding: 20,
+    borderRadius: 20,
+    padding: 24,
     marginBottom: 20,
     borderWidth: 2,
   },
   detailTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 12,
     textAlign: 'center',
   },
   detailDescription: {
     fontSize: 16,
     color: '#ccc',
     textAlign: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
     fontStyle: 'italic',
+    lineHeight: 22,
   },
   bonusesTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   bonusItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  bonusBullet: {
+    fontSize: 16,
+    color: '#0066cc',
+    marginRight: 8,
+    marginTop: 2,
+  },
+  bonusText: {
     fontSize: 14,
     color: '#ccc',
-    marginBottom: 5,
-    paddingLeft: 10,
+    flex: 1,
+    lineHeight: 20,
+  },
+  bottomContainer: {
+    padding: 20,
+    paddingBottom: 30,
+    backgroundColor: '#1a1a1a',
+    borderTopWidth: 1,
+    borderTopColor: '#333',
   },
   confirmButton: {
     backgroundColor: '#666',
-    padding: 18,
-    borderRadius: 15,
+    paddingVertical: 18,
+    borderRadius: 16,
     alignItems: 'center',
-    marginBottom: 20,
+    minHeight: 56,
+    justifyContent: 'center',
   },
   disabledButton: {
     backgroundColor: '#444',

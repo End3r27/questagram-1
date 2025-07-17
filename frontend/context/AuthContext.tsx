@@ -10,6 +10,8 @@ interface User {
   xp?: number;
   gold?: number;
   gems?: number;
+  questsCompleted?: number;
+  postsCount?: number;
 }
 
 interface AuthContextType {
@@ -54,6 +56,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         xp: 0,
         gold: 100,
         gems: 10,
+        questsCompleted: 0,
+        postsCount: 0,
         ...user
       };
       

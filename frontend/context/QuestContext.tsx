@@ -123,7 +123,10 @@ export const QuestProvider = ({ children }: { children: ReactNode }) => {
     try {
       const storedQuests = await AsyncStorage.getItem(QUESTS_STORAGE_KEY);
       if (storedQuests) {
-        const questData = JSON.parse(storedQuests);
+        const questData = JSON.parse(storedQuests).map((quest: any) => ({
+          ...quest,
+          expiresAt: quest.expiresAt ? new Date(quest.expiresAt) : undefined
+        }));
         setQuests(questData);
       } else {
         // Generate initial quests

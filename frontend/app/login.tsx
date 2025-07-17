@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import LoginForm from '../components/Auth/LoginForm';
 import { useAuth } from '../context/AuthContext';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,14 +24,17 @@ export default function LoginPage() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={styles.formContainer}>
         <LoginForm 
           onLoginSuccess={handleLoginSuccess}
           onNavigateToSignup={handleNavigateToSignup}
         />
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -37,12 +42,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   formContainer: {
-    width: '100%',
-    maxWidth: 400,
-    paddingHorizontal: 20,
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 40,
   },
 });

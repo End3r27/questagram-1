@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { usePosts, Post } from '../context/PostContext';
 import { useAuth } from '../context/AuthContext';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 const classEmojis: { [key: string]: string } = {
   warrior: '⚔️',
@@ -46,9 +48,11 @@ export default function Feed() {
         {/* Post Header */}
         <View style={styles.postHeader}>
           <View style={styles.userInfo}>
-            <Text style={styles.userEmoji}>
-              {classEmojis[post.userClass] || '🎭'}
-            </Text>
+            <View style={styles.userAvatar}>
+              <Text style={styles.userEmoji}>
+                {classEmojis[post.userClass] || '🎭'}
+              </Text>
+            </View>
             <View style={styles.userDetails}>
               <Text style={styles.username}>{post.username}</Text>
               <View style={styles.postMeta}>
@@ -61,7 +65,9 @@ export default function Feed() {
               </View>
             </View>
           </View>
-          <Text style={styles.xpBadge}>+{post.xpEarned} XP</Text>
+          <View style={styles.xpBadge}>
+            <Text style={styles.xpBadgeText}>+{post.xpEarned}</Text>
+          </View>
         </View>
 
         {/* Post Content */}
@@ -72,6 +78,7 @@ export default function Feed() {
           <TouchableOpacity 
             style={styles.actionButton}
             onPress={() => handleLike(post.id)}
+            activeOpacity={0.7}
           >
             <Text style={styles.actionEmoji}>❤️</Text>
             <Text style={styles.actionText}>{post.likes}</Text>
@@ -80,12 +87,16 @@ export default function Feed() {
           <TouchableOpacity 
             style={styles.actionButton}
             onPress={() => handleComment(post.id)}
+            activeOpacity={0.7}
           >
             <Text style={styles.actionEmoji}>💬</Text>
             <Text style={styles.actionText}>{post.comments.length}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            activeOpacity={0.7}
+          >
             <Text style={styles.actionEmoji}>🔄</Text>
             <Text style={styles.actionText}>Share</Text>
           </TouchableOpacity>
@@ -97,14 +108,16 @@ export default function Feed() {
             <Text style={styles.commentsTitle}>Comments:</Text>
             {post.comments.slice(0, 2).map((comment) => (
               <View key={comment.id} style={styles.comment}>
-                <Text style={styles.commentUser}>{comment.username}:</Text>
+                <Text style={styles.commentUser}>{comment.username}</Text>
                 <Text style={styles.commentText}>{comment.content}</Text>
               </View>
             ))}
             {post.comments.length > 2 && (
-              <Text style={styles.moreComments}>
-                View {post.comments.length - 2} more comments...
-              </Text>
+              <TouchableOpacity>
+                <Text style={styles.moreComments}>
+                  View {post.comments.length - 2} more comments...
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
         )}
@@ -120,6 +133,7 @@ export default function Feed() {
         <TouchableOpacity 
           style={styles.createButton}
           onPress={() => router.push('/create-post')}
+          activeOpacity={0.8}
         >
           <Text style={styles.createButtonText}>📸</Text>
         </TouchableOpacity>
@@ -138,6 +152,7 @@ export default function Feed() {
             selectedZone === 'all' && styles.selectedZoneFilter
           ]}
           onPress={() => setSelectedZone('all')}
+          activeOpacity={0.8}
         >
           <Text style={styles.zoneFilterEmoji}>🌍</Text>
           <Text style={[
@@ -156,6 +171,7 @@ export default function Feed() {
               selectedZone === zone.id && styles.selectedZoneFilter
             ]}
             onPress={() => setSelectedZone(zone.id)}
+            activeOpacity={0.8}
           >
             <Text style={styles.zoneFilterEmoji}>{zone.emoji}</Text>
             <Text style={[
@@ -176,6 +192,7 @@ export default function Feed() {
         style={styles.feed}
         contentContainerStyle={styles.feedContent}
         showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateEmoji}>📭</Text>
@@ -185,6 +202,12 @@ export default function Feed() {
             <Text style={styles.emptyStateSubtext}>
               Be the first to share your adventure!
             </Text>
+            <TouchableOpacity 
+              style={styles.emptyStateButton}
+              onPress={() => router.push('/create-post')}
+            >
+              <Text style={styles.emptyStateButtonText}>Create First Post</Text>
+            </TouchableOpacity>
           </View>
         }
       />
@@ -201,20 +224,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 15,
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#fff',
   },
   createButton: {
     backgroundColor: '#00cc66',
     padding: 12,
-    borderRadius: 25,
-    width: 50,
-    height: 50,
+    borderRadius: 20,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -223,22 +250,23 @@ const styles = StyleSheet.create({
   },
   zoneFilter: {
     maxHeight: 80,
-    marginBottom: 10,
+    backgroundColor: '#1a1a1a',
   },
   zoneFilterContent: {
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   zoneFilterButton: {
     backgroundColor: '#2a2a2a',
     borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    marginRight: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginRight: 12,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#444',
+    minHeight: 44,
   },
   selectedZoneFilter: {
     backgroundColor: '#0066cc',
@@ -246,11 +274,11 @@ const styles = StyleSheet.create({
   },
   zoneFilterEmoji: {
     fontSize: 16,
-    marginRight: 5,
+    marginRight: 6,
   },
   zoneFilterText: {
     color: '#ccc',
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   selectedZoneFilterText: {
@@ -260,14 +288,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   feedContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  separator: {
+    height: 12,
   },
   postCard: {
     backgroundColor: '#2a2a2a',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#444',
   },
@@ -275,16 +305,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 12,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#333',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
   userEmoji: {
-    fontSize: 24,
-    marginRight: 10,
+    fontSize: 20,
   },
   userDetails: {
     flex: 1,
@@ -307,27 +345,29 @@ const styles = StyleSheet.create({
   timeAgo: {
     fontSize: 12,
     color: '#999',
-    marginLeft: 5,
+    marginLeft: 4,
   },
   xpBadge: {
     backgroundColor: '#00cc66',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  xpBadgeText: {
     color: '#fff',
     fontSize: 12,
     fontWeight: 'bold',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
   },
   postContent: {
     fontSize: 16,
     color: '#fff',
-    lineHeight: 22,
-    marginBottom: 15,
+    lineHeight: 24,
+    marginBottom: 16,
   },
   postActions: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingTop: 15,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#444',
   },
@@ -335,11 +375,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 15,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    minHeight: 44,
   },
   actionEmoji: {
-    fontSize: 16,
-    marginRight: 5,
+    fontSize: 18,
+    marginRight: 6,
   },
   actionText: {
     color: '#ccc',
@@ -347,8 +389,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   commentsSection: {
-    marginTop: 15,
-    paddingTop: 15,
+    marginTop: 12,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#444',
   },
@@ -360,43 +402,60 @@ const styles = StyleSheet.create({
   },
   comment: {
     flexDirection: 'row',
-    marginBottom: 5,
+    marginBottom: 6,
+    flexWrap: 'wrap',
   },
   commentUser: {
     fontSize: 12,
     fontWeight: 'bold',
     color: '#0066cc',
-    marginRight: 5,
+    marginRight: 6,
   },
   commentText: {
     fontSize: 12,
     color: '#ccc',
     flex: 1,
+    lineHeight: 16,
   },
   moreComments: {
     fontSize: 12,
     color: '#999',
     fontStyle: 'italic',
-    marginTop: 5,
+    marginTop: 4,
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
+    paddingHorizontal: 40,
   },
   emptyStateEmoji: {
-    fontSize: 48,
-    marginBottom: 15,
+    fontSize: 64,
+    marginBottom: 20,
   },
   emptyStateText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 5,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   emptyStateSubtext: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#ccc',
     textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  emptyStateButton: {
+    backgroundColor: '#0066cc',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 16,
+  },
+  emptyStateButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

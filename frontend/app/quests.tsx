@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useQuests, Quest } from '../context/QuestContext';
 import { useAuth } from '../context/AuthContext';
+import { useLeaderboard } from '../context/LeaderboardContext';
 
 const difficultyColors = {
   easy: '#44ff44',
@@ -18,6 +19,7 @@ const typeEmojis = {
 export default function QuestsPage() {
   const { quests, loading, completeQuest } = useQuests();
   const { user, updateUser } = useAuth();
+  const { updateUserStats } = useLeaderboard();
 
   const handleCompleteQuest = async (quest: Quest) => {
     if (quest.completed) return;
@@ -49,19 +51,44 @@ export default function QuestsPage() {
               
               if (newXP >= xpForNextLevel) {
                 // Level up!
+                const newLevel = (user.level || 1) + 1;
+                const remainingXP = newXP - xpForNextLevel;
+                const newGold = (user.gold || 0) + goldReward + 50; // Bonus gold for leveling
+                const newGems = (user.gems || 0) + gemReward + 5; // Bonus gems for leveling
+
                 await updateUser({
-                  level: (user.level || 1) + 1,
-                  xp: newXP - xpForNextLevel,
-                  gold: (user.gold || 0) + goldReward + 50, // Bonus gold for leveling
-                  gems: (user.gems || 0) + gemReward + 5 // Bonus gems for leveling
+                  level: newLevel,
+                  xp: remainingXP,
+                  gold: newGold,
+                  gems: newGems
+                });
+
+                // Update leaderboard with new stats
+                await updateUserStats(user.id, {
+                  level: newLevel,
+                  xp: remainingXP,
+                  gold: newGold,
+                  gems: newGems,
+                  questsCompleted: (user.questsCompleted || 0) + 1
                 });
                 
-                Alert.alert('🎉 Level Up!', `Congratulations! You reached level ${(user.level || 1) + 1}!`);
+                Alert.alert('🎉 Level Up!', `Congratulations! You reached level ${newLevel}!`);
               } else {
+                const newGold = (user.gold || 0) + goldReward;
+                const newGems = (user.gems || 0) + gemReward;
+
                 await updateUser({
                   xp: newXP,
-                  gold: (user.gold || 0) + goldReward,
-                  gems: (user.gems || 0) + gemReward
+                  gold: newGold,
+                  gems: newGems
+                });
+
+                // Update leaderboard with new stats
+                await updateUserStats(user.id, {
+                  xp: newXP,
+                  gold: newGold,
+                  gems: newGems,
+                  questsCompleted: (user.questsCompleted || 0) + 1
                 });
               }
             }
@@ -69,6 +96,24 @@ export default function QuestsPage() {
         }
       ]
     );
+  };
+
+  const formatExpiryDate = (expiresAt?: Date) => {
+    if (!expiresAt) return 'No expiry';
+    
+    try {
+      // Ensure it's a Date object
+      const date = expiresAt instanceof Date ? expiresAt : new Date(expiresAt);
+      
+      // Check if it's a valid date
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
+      
+      return date.toLocaleDateString();
+    } catch (error) {
+      return 'Invalid date';
+    }
   };
 
   const renderQuest = (quest: Quest) => {
@@ -138,7 +183,7 @@ export default function QuestsPage() {
 
         {quest.expiresAt && (
           <Text style={styles.expiryText}>
-            Expires: {quest.expiresAt.toLocaleDateString()}
+            Expires: {formatExpiryDate(quest.expiresAt)}
           </Text>
         )}
 
