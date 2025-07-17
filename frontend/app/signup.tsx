@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
 // Remove Picker import for now
 import { router } from 'expo-router';
+import { useAuth } from '../context/AuthContext';
 
 const classes = [
   { label: 'Choose your class...', value: '' },
@@ -19,6 +20,7 @@ const SignupScreen = () => {
   const [userClass, setUserClass] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
 
   const handleSignup = async () => {
     setError('');
@@ -48,14 +50,26 @@ const SignupScreen = () => {
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
+      // Automatically log in the user after successful signup
+      await login({
+        id: 'user-id', // In a real app, this would come from the API response
+        username: username,
+        hasSelectedClass: true // Since they selected a class during signup
+      });
+
       setLoading(false);
+      
+      // Show success message and automatically redirect
       Alert.alert(
         'Character Created!', 
         `Welcome to Questagram, ${username}! Your ${userClass} adventure begins now.`,
         [
           {
             text: 'Start Adventure',
-            onPress: () => router.push('/class-selection')
+            onPress: () => {
+              // The AuthRedirector will automatically handle navigation to main-app
+              // since hasSelectedClass is true
+            }
           }
         ]
       );
